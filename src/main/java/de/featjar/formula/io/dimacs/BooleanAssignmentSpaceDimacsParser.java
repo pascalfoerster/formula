@@ -97,7 +97,9 @@ public class BooleanAssignmentSpaceDimacsParser {
 
         if (readVariableDirectory) {
             for (int i = 1; i <= variableCount; i++) {
-                indexVariables.add(i, Integer.toString(i));
+                if (!indexVariables.has(i)) {
+                    indexVariables.add(i, getUniqueName(i));
+                }
             }
         }
 
@@ -113,6 +115,17 @@ public class BooleanAssignmentSpaceDimacsParser {
                     String.format("Found %d instead of %d clauses", actualClauseCount, clauseCount), 1);
         }
         return new BooleanAssignmentSpace(indexVariables, List.of(clauses));
+    }
+
+    private String getUniqueName(int i) {
+        String indexName = Integer.toString(i);
+        String name = indexName;
+        int suffix = 2;
+        while (indexVariables.has(name)) {
+            name = indexName + "_" + suffix;
+            suffix++;
+        }
+        return name;
     }
 
     private void readComments(final NonEmptyLineIterator nonemptyLineIterator) {
@@ -237,9 +250,10 @@ public class BooleanAssignmentSpaceDimacsParser {
             if (index == 0) {
                 throw new ParseException("Illegal literal", nonemptyLineIterator.getLineCount());
             }
-            final Integer key = Math.abs(index);
-            String variableName = String.valueOf(key);
-            indexVariables.add(key, variableName);
+            final int key = Math.abs(index);
+            if (!indexVariables.has(key)) {
+                indexVariables.add(key, getUniqueName(key));
+            }
             literals[j] = index;
         }
         return new BooleanClause(literals);
