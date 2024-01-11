@@ -20,7 +20,7 @@
  */
 package de.featjar.formula.analysis.combinations;
 
-import de.featjar.base.data.IIntegerList;
+import de.featjar.base.data.IntegerList;
 import de.featjar.formula.analysis.bool.ABooleanAssignment;
 import de.featjar.formula.analysis.bool.BooleanAssignment;
 import de.featjar.formula.analysis.bool.BooleanSolution;
@@ -46,11 +46,11 @@ public class IncInteractionFinder {
 
     protected int configurationVerificationLimit = Integer.MAX_VALUE;
 
-    private List<BooleanSolution> succeedingConfs;
-    private List<BooleanSolution> failingConfs;
+    protected List<BooleanSolution> succeedingConfs;
+    protected List<BooleanSolution> failingConfs;
 
     protected int verifyCounter;
-    private int[] lastMerge;
+    protected int[] lastMerge;
 
     public void reset() {
         succeedingConfs = new ArrayList<>();
@@ -78,6 +78,9 @@ public class IncInteractionFinder {
     }
 
     public List<BooleanAssignment> find(int tmax) {
+        if (failingConfs.isEmpty()) {
+            return null;
+        }
         verifyCounter = 0;
         lastMerge = null;
 
@@ -136,9 +139,8 @@ public class IncInteractionFinder {
 
         final List<int[]> result = lastI == -1 ? null : results[lastI];
         return isPotentialInteraction(result)
-                ? List.of((BooleanAssignment) IIntegerList.merge(
-                        result.stream().map(BooleanAssignment::new).collect(Collectors.toList()),
-                        BooleanAssignment::new))
+                ? List.of(new BooleanAssignment(
+                        IntegerList.mergeInt(result.stream().collect(Collectors.toList()))))
                 : null;
     }
 
@@ -262,7 +264,7 @@ public class IncInteractionFinder {
         if (curInteractionList.isEmpty()) {
             return null;
         } else {
-            lastMerge = IIntegerList.mergeInt(curInteractionList);
+            lastMerge = IntegerList.mergeInt(curInteractionList);
             return curInteractionList;
         }
     }
@@ -302,7 +304,7 @@ public class IncInteractionFinder {
         if (testConfig == null || verify(testConfig)) {
             return false;
         }
-        int[] exclude = IIntegerList.mergeInt(interactions);
+        int[] exclude = IntegerList.mergeInt(interactions);
         final BooleanSolution inverseConfig =
                 updater.complete(null, List.of(exclude), null).orElse(null);
         return inverseConfig == null || verify(inverseConfig);

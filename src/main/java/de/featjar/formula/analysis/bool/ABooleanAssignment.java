@@ -27,6 +27,7 @@ import de.featjar.base.data.Result;
 import de.featjar.base.data.Sets;
 import de.featjar.formula.analysis.IAssignment;
 import de.featjar.formula.analysis.ISolver;
+import de.featjar.formula.analysis.RuntimeContradictionException;
 import de.featjar.formula.analysis.VariableMap;
 import de.featjar.formula.analysis.value.ValueAssignment;
 import java.util.Arrays;
@@ -36,13 +37,15 @@ import java.util.LinkedHashSet;
 import java.util.stream.IntStream;
 
 /**
- * Assigns Boolean values to integer-identified {@link de.featjar.formula.structure.term.value.Variable variables}.
- * Can be used to represent a set of literals for use in a satisfiability {@link ISolver}.
- * Implemented as an unordered list of indices to variables in some unspecified {@link VariableMap}.
- * An index can be negative, indicating a negated occurrence of its variable,
- * or 0, indicating no occurrence, and it may occur multiple times.
- * For specific use cases, consider using {@link BooleanClause} (a disjunction
- * of literals) or {@link BooleanSolution} (a conjunction of literals).
+ * Assigns Boolean values to integer-identified
+ * {@link de.featjar.formula.structure.term.value.Variable variables}. Can be
+ * used to represent a set of literals for use in a satisfiability
+ * {@link ISolver}. Implemented as an unordered list of indices to variables in
+ * some unspecified {@link VariableMap}. An index can be negative, indicating a
+ * negated occurrence of its variable, or 0, indicating no occurrence, and it
+ * may occur multiple times. For specific use cases, consider using
+ * {@link BooleanClause} (a disjunction of literals) or {@link BooleanSolution}
+ * (a conjunction of literals).
  *
  * @author Sebastian Krieter
  * @author Elias Kuiter
@@ -50,12 +53,38 @@ import java.util.stream.IntStream;
 public abstract class ABooleanAssignment extends IntegerList
         implements IAssignment<Integer, Boolean>, IBooleanRepresentation {
 
+    public static int[] unitPropagation(BooleanClause clause, BooleanAssignment core) {
+        final int[] literals = clause.get();
+        final LinkedHashSet<Integer> literalSet = new LinkedHashSet<>(literals.length << 1);
+
+        for (int var : literals) {
+            if (core.indexOf(var) >= 0) {
+                return null;
+            } else if (core.indexOf(-var) < 0) {
+                if (literalSet.contains(-var)) {
+                    return null;
+                } else {
+                    literalSet.add(var);
+                }
+            }
+        }
+        if (literalSet.isEmpty()) {
+            throw new RuntimeContradictionException();
+        }
+        final int[] literalArray = new int[literalSet.size()];
+        int i = 0;
+        for (final int lit : literalSet) {
+            literalArray[i++] = lit;
+        }
+        return literalArray;
+    }
+
     public static int[] simplify(int[] literals) {
         final LinkedHashSet<Integer> integerSet = Sets.empty();
         for (final int integer : literals) {
             if (integer != 0 && integerSet.contains(-integer)) {
                 // If this assignment is a contradiction or tautology, it can be simplified.
-                return new int[] {integer, -integer};
+                return new int[] {};
             } else {
                 integerSet.add(integer);
             }
@@ -103,69 +132,111 @@ public abstract class ABooleanAssignment extends IntegerList
         super(booleanAssignment);
     }
 
-    public int[] simplify() {
-        return simplify(array);
+    public final int[] simplify() {
+        return simplify(elements);
     }
 
-    public Result<int[]> adapt(VariableMap oldVariableMap, VariableMap newVariableMap) {
-        return adapt(array, oldVariableMap, newVariableMap, false);
+    public final Result<int[]> adapt(VariableMap oldVariableMap, VariableMap newVariableMap) {
+        return adapt(elements, oldVariableMap, newVariableMap, false);
     }
 
-    public boolean containsAnyVariable(int... integers) {
-        return Arrays.stream(integers).anyMatch(integer -> indexOfVariable(integer) >= 0);
-    }
-
-    public boolean containsAllVariables(int... integers) {
-        return Arrays.stream(integers).noneMatch(integer -> indexOfVariable(integer) >= 0);
-    }
-
-    public int indexOfVariable(int variableInteger) {
-        return IntStream.range(0, array.length)
-                .filter(i -> Math.abs(array[i]) == variableInteger)
+    public int indexOfVariable(int variable) {
+        if (variable < 0) {
+            throw new IllegalArgumentException(String.format("%d is negative", variable));
+        }
+        return IntStream.range(0, elements.length)
+                .filter(i -> Math.abs(elements[i]) == variable)
                 .findFirst()
                 .orElse(-1);
     }
 
-    protected int countVariables(int[] integers, boolean[] intersectionMarker) {
+    public int[] indicesOfVariable(int variable) {
+        if (variable < 0) {
+            throw new IllegalArgumentException(String.format("%d is negative", variable));
+        }
+        return IntStream.range(0, elements.length)
+                .filter(i -> Math.abs(elements[i]) == variable)
+                .toArray();
+    }
+
+    public final boolean containsVariable(int integer) {
+        return indexOfVariable(integer) >= 0;
+    }
+
+    public final boolean containsAnyVariable(int... integers) {
+        return Arrays.stream(integers).anyMatch(integer -> containsVariable(integer));
+    }
+
+    public final boolean containsAllVariables(int... integers) {
+        return Arrays.stream(integers).allMatch(integer -> containsVariable(integer));
+    }
+
+    public final boolean containsNoneVariables(int... integers) {
+        return Arrays.stream(integers).noneMatch(integer -> containsVariable(integer));
+    }
+
+    /**
+     * {@return the intersection of this integer list with the given integers}
+     *
+     * @param integers the integers
+     */
+    public final int[] retainAllVariables(int... integers) {
+        boolean[] intersectionMarker = new boolean[elements.length];
         int count = 0;
         for (int integer : integers) {
-            final int index = indexOfVariable(integer);
-            if (index >= 0) {
-                count++;
-                if (intersectionMarker != null) {
+            final int[] indices = indicesOfVariable(integer);
+            for (int i = 0; i < indices.length; i++) {
+                int index = indices[i];
+                if (index >= 0 && !intersectionMarker[index]) {
+                    count++;
                     intersectionMarker[index] = true;
                 }
             }
         }
-        return count;
-    }
 
-    public int[] removeAllVariables(int... integers) {
-        boolean[] intersectionMarker = new boolean[this.array.length];
-        int count = countVariables(integers, intersectionMarker);
-
-        int[] newIntegers = new int[this.array.length - count];
+        int[] newArray = new int[count];
         int j = 0;
-        for (int i = 0; i < this.array.length; i++) {
-            if (!intersectionMarker[i]) {
-                newIntegers[j++] = this.array[i];
-            }
-        }
-        return newIntegers;
-    }
-
-    public int[] retainAllVariables(int... integers) {
-        boolean[] intersectionMarker = new boolean[this.array.length];
-        int count = countVariables(integers, intersectionMarker);
-
-        int[] newIntegers = new int[count];
-        int j = 0;
-        for (int i = 0; i < this.array.length; i++) {
+        for (int i = 0; i < elements.length; i++) {
             if (intersectionMarker[i]) {
-                newIntegers[j++] = this.array[i];
+                newArray[j++] = elements[i];
             }
         }
-        return newIntegers;
+        assert Arrays.stream(elements)
+                .allMatch(e -> Arrays.stream(newArray).anyMatch(i -> i == e)
+                        == Arrays.stream(integers).anyMatch(i -> i == Math.abs(e)));
+        return newArray;
+    }
+
+    /**
+     * {@return the difference of this integer list and the given integers}
+     *
+     * @param integers the integers
+     */
+    public final int[] removeAllVariables(int... integers) {
+        boolean[] intersectionMarker = new boolean[elements.length];
+        int count = 0;
+        for (int integer : integers) {
+            final int[] indices = indicesOfVariable(integer);
+            for (int i = 0; i < indices.length; i++) {
+                int index = indices[i];
+                if (index >= 0 && !intersectionMarker[index]) {
+                    count++;
+                    intersectionMarker[index] = true;
+                }
+            }
+        }
+
+        int[] newArray = new int[elements.length - count];
+        int j = 0;
+        for (int i = 0; i < elements.length; i++) {
+            if (!intersectionMarker[i]) {
+                newArray[j++] = elements[i];
+            }
+        }
+        assert Arrays.stream(elements)
+                .allMatch(e -> Arrays.stream(newArray).anyMatch(i -> i == e)
+                        ^ Arrays.stream(integers).anyMatch(i -> i == Math.abs(e)));
+        return newArray;
     }
 
     public ABooleanAssignment addAll(ABooleanAssignment integers) {
@@ -189,27 +260,26 @@ public abstract class ABooleanAssignment extends IntegerList
     }
 
     public BooleanAssignment toAssignment() {
-        return new BooleanAssignment(IntStream.of(array).filter(l -> l != 0).toArray());
+        return new BooleanAssignment(IntStream.of(elements).filter(l -> l != 0).toArray());
     }
 
     @Override
     public BooleanClause toClause() {
-        return new BooleanClause(IntStream.of(array).filter(l -> l != 0).toArray());
+        return new BooleanClause(IntStream.of(elements).filter(l -> l != 0).toArray());
     }
 
     @Override
     public BooleanSolution toSolution() {
-        return new BooleanSolution(IntStream.of(array).map(Math::abs).max().orElse(0), array);
+        return new BooleanSolution(IntStream.of(elements).map(Math::abs).max().orElse(0), elements);
     }
 
     public abstract ABooleanAssignment inverse();
 
     public ValueAssignment toValue() {
         LinkedHashMap<String, Object> variableValuePairs = Maps.empty();
-        for (int literal : array) {
+        for (int literal : elements) {
             if (literal != 0) {
-                int index = Math.abs(literal);
-                variableValuePairs.put(String.valueOf(index), literal > 0);
+                variableValuePairs.put(String.valueOf(Math.abs(literal)), literal > 0);
             }
         }
         return new ValueAssignment(variableValuePairs);
@@ -228,27 +298,20 @@ public abstract class ABooleanAssignment extends IntegerList
     @Override
     public LinkedHashMap<Integer, Boolean> getAll() {
         LinkedHashMap<Integer, Boolean> map = Maps.empty();
-        for (int integer : array) {
-            if (integer > 0) map.put(integer, true);
-            else if (integer < 0) map.put(-integer, false);
+        for (int literal : elements) {
+            if (literal != 0) {
+                map.put(literal, literal > 0);
+            }
         }
         return map;
     }
 
     @Override
-    public int size() {
-        return array.length;
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return array.length == 0;
-    }
-
-    @Override
     public Result<Boolean> getValue(Integer variable) {
         int index = indexOfVariable(variable);
-        if (index < 0) return Result.empty();
+        if (index < 0) {
+            return Result.empty();
+        }
         int value = get(index);
         return value == 0 ? Result.empty() : Result.of(value > 0);
     }
