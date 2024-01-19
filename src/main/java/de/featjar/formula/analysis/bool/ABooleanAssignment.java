@@ -286,7 +286,7 @@ public abstract class ABooleanAssignment extends IntegerList
     }
     public ValueAssignment toValueName(VariableMap map) {
         LinkedHashMap<String, Object> variableValuePairs = Maps.empty();
-        for (int literal : array) {
+        for (int literal : elements) {
             if (literal != 0) {
                 int index = Math.abs(literal);
                 variableValuePairs.put( map.get(index).get(), literal > 0);
