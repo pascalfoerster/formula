@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  * @author Sebastian Krieter
  * @author Elias Kuiter
  */
-public class XMLFeatureModelExtraFormulaFormat extends AXMLFeatureModelFormat<Pair<IExpression,Pair<List<String>,List<BiImplies>>>, Pair<Literal,Boolean>, Boolean> {
+public class XMLFeatureModelExtraFormulaFormat extends AXMLFeatureModelExtraFormat<Pair<IExpression,Pair<List<String>,List<BiImplies>>>, Pair<Literal,Boolean>, Boolean> {
     protected final LinkedHashSet<String> featureLabels = Sets.empty();
     protected final List<IFormula> constraints = new ArrayList<>();
     protected final List<String> hiddenVariables = new ArrayList<>();
@@ -95,7 +95,7 @@ public class XMLFeatureModelExtraFormulaFormat extends AXMLFeatureModelFormat<Pa
 
     @Override
     protected Pair<Literal,Boolean> newFeatureLabel(
-            String name, Pair<Literal,Boolean> parentFeatureLabel, boolean mandatory, boolean _abstract, boolean hidden)
+            String name, Pair<Literal,Boolean> parentFeatureLabel, boolean mandatory, boolean _abstract, boolean hidden, boolean or, boolean alt)
             throws ParseException {
         if (featureLabels.contains(name)) {
             throw new ParseException("Duplicate feature name!");
@@ -109,13 +109,15 @@ public class XMLFeatureModelExtraFormulaFormat extends AXMLFeatureModelFormat<Pa
         if (parentFeatureLabel == null) {
             constraints.add(literal);
         } else {
-            if (mandatory) {
-                IFormula biImplies = biImplies(parentFeatureLabel.getKey(), literal);
-                biImpliesList.add((BiImplies) biImplies);
-                constraints.add(biImplies);
-            }else {
+            if( !alt && ! or) {
+                if (mandatory) {
+                    IFormula biImplies = biImplies(parentFeatureLabel.getKey(), literal);
+                    biImpliesList.add((BiImplies) biImplies);
+                    constraints.add(biImplies);
+                } else {
 
-                constraints.add(implies(literal, parentFeatureLabel.getKey()));
+                    constraints.add(implies(literal, parentFeatureLabel.getKey()));
+                }
             }
         }
         return new Pair<>(literal,hidden);
@@ -126,7 +128,9 @@ public class XMLFeatureModelExtraFormulaFormat extends AXMLFeatureModelFormat<Pa
 
     @Override
     protected void addOrGroup(Pair<Literal,Boolean> featureLabel, List<Pair<Literal,Boolean>> childFeatureLabels) {
-        constraints.add(implies(featureLabel.getKey(), childFeatureLabels.stream().map(Pair::getKey).collect(Collectors.toList())));
+        IFormula biImplies = biImplies(featureLabel.getKey(), new Or(childFeatureLabels.stream().map(Pair::getKey).collect(Collectors.toList())));
+        biImpliesList.add((BiImplies) biImplies);
+        constraints.add(biImplies);
     }
 
     @Override
