@@ -20,6 +20,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Simplify Formula if core and dead features get set in
+ * TODO AtMost and AtLeast are ignored because they are irrelevant at the moment, as the formulae currently used never contain these expressions.
+ * TODO However, they could become relevant for other applications.
+ *
+ */
 public class CoreDeadSimplifier implements ITreeVisitor<IFormula,Void> {
 
     private final ValueAssignment coreDeadFeature;
@@ -92,29 +98,57 @@ public class CoreDeadSimplifier implements ITreeVisitor<IFormula,Void> {
         }else if((formula instanceof And || formula instanceof Or) && formula.getChildrenCount() == 1){
            return (IFormula) formula.getChildren().get(0);
         } else if (formula instanceof  Not && formula.getChildrenCount() == 1) {
-           if(formula.getChildren().get(0) == Expressions.False) return Expressions.True;
-           else if (formula.getChildren().get(0) == Expressions.True) return Expressions.False;
+           if(formula.getChildren().get(0) == Expressions.False) {
+               return Expressions.True;
+           }
+           if (formula.getChildren().get(0) == Expressions.True) {
+               return Expressions.False;
+           }
         }else if(formula instanceof Implies){
             IExpression left = ((Implies) formula).getLeftExpression();
             IExpression right = ((Implies) formula).getRightExpression() ;
-            if(left == Expressions.False) return Expressions.True;
-            else if(right == Expressions.True) return  Expressions.True;
-            else if (left == Expressions.True && right == Expressions.False) return Expressions.False;
-            else if(left == Expressions.True) return (IFormula) right;
-            else if(right == Expressions.False) return new Not((IFormula) left);
+            if(left == Expressions.False) {
+                return Expressions.True;
+            } else if(right == Expressions.True) {
+                return  Expressions.True;
+            } else if (left == Expressions.True && right == Expressions.False) {
+                return Expressions.False;
+            } else if(left == Expressions.True) {
+                return (IFormula) right;
+            }else if(right == Expressions.False) {
+                return createNot(left);
+            }
         }else if(formula instanceof BiImplies){
             IExpression left = ((BiImplies) formula).getLeftExpression();
             IExpression right = ((BiImplies) formula).getRightExpression() ;
-            if(left == Expressions.True) return (IFormula) right;
-            else if(right == Expressions.True) return (IFormula) left;
-            else if (left == Expressions.False && right == Expressions.False) return Expressions.True;
-            else if(left == Expressions.False) return  new Not((IFormula) right);
-            else if(right == Expressions.False) return new Not((IFormula) left);
+            if(left == Expressions.True) {
+                return (IFormula) right;
+            }else if(right == Expressions.True) {
+                return (IFormula) left;
+            }
+            else if (left == Expressions.False && right == Expressions.False) {
+                return Expressions.True;
+            }
+            else if(left == Expressions.False) {
+                return  createNot( right);
+            }
+            else if(right == Expressions.False) {
+                return createNot(left);
+                }
         }
         return null;
     }
 
+    private IFormula createNot(IExpression formula) {
+        if (formula instanceof Not ){
 
+            return  (IFormula) formula.getChildren().get(0);
+        }if(formula instanceof Literal) {
+            Literal literal = (Literal) formula;
+            if(literal.isNegative()) return literal.invert();
+        }
+        return new Not((IFormula) formula);
+    }
 
     @Override
     public Result<Void> getResult() {
