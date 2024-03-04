@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 FeatJAR-Development-Team
+ * Copyright (C) 2024 FeatJAR-Development-Team
  *
  * This file is part of FeatJAR-formula.
  *
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with formula. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR> for further information.
+ * See <https://github.com/FeatureIDE/FeatJAR-formula> for further information.
  */
 package de.featjar.formula.structure;
 
@@ -24,6 +24,7 @@ import de.featjar.base.io.IO;
 import de.featjar.base.tree.Trees;
 import de.featjar.base.tree.structure.ITree;
 import de.featjar.formula.analysis.bool.BooleanAssignment;
+import de.featjar.formula.analysis.value.AValueAssignment;
 import de.featjar.formula.analysis.value.ValueAssignment;
 import de.featjar.formula.io.textual.ExpressionFormat;
 import de.featjar.formula.structure.formula.IFormula;
@@ -74,7 +75,7 @@ public interface IExpression extends ITree<IExpression> {
      *
      * @param valueAssignment the value assignment
      */
-    default Object evaluate(ValueAssignment valueAssignment) {
+    default Object evaluate(AValueAssignment valueAssignment) {
         return traverse(new Evaluator(valueAssignment)).orElse(null);
     }
 

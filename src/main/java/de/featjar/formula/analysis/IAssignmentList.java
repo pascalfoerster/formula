@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 FeatJAR-Development-Team
+ * Copyright (C) 2024 FeatJAR-Development-Team
  *
  * This file is part of FeatJAR-formula.
  *
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with formula. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR> for further information.
+ * See <https://github.com/FeatureIDE/FeatJAR-formula> for further information.
  */
 package de.featjar.formula.analysis;
 
@@ -46,6 +46,16 @@ public interface IAssignmentList<T extends IAssignment<?, ?>> extends Iterable<T
      * If it is not, the other methods must be overridden accordingly.
      */
     List<T> getAll();
+
+    /**
+     * {@return {@code true} iff all assignments in the given list match an assignment in this list}
+     * @param other the other assignment
+     */
+    default boolean containsOtherAssignments(IAssignmentList<T> other) {
+        List<T> thisAssignments = getAll();
+        return other.stream().allMatch(otherAssignment -> thisAssignments.stream()
+                .anyMatch(thisAssignment -> thisAssignment.containsOtherAssignment(otherAssignment)));
+    }
 
     @Override
     default Iterator<T> iterator() {

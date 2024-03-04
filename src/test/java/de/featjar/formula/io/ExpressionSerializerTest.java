@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 FeatJAR-Development-Team
+ * Copyright (C) 2024 FeatJAR-Development-Team
  *
  * This file is part of FeatJAR-formula.
  *
@@ -16,18 +16,19 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with formula. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR> for further information.
+ * See <https://github.com/FeatureIDE/FeatJAR-formula> for further information.
  */
 package de.featjar.formula.io;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import de.featjar.Common;
 import de.featjar.base.tree.Trees;
 import de.featjar.formula.io.textual.ExpressionSerializer;
 import de.featjar.formula.io.textual.ExpressionSerializer.Notation;
-import de.featjar.formula.io.textual.Symbols;
+import de.featjar.formula.io.textual.JavaSymbols;
+import de.featjar.formula.io.textual.TextualSymbols;
 import de.featjar.formula.structure.formula.IFormula;
-import de.featjar.formula.test.CommonFormulas;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -35,13 +36,13 @@ import org.junit.jupiter.api.Test;
  *
  * @author Sebastian Krieter
  */
-public class ExpressionSerializerTest {
+public class ExpressionSerializerTest extends Common {
 
     @Test
     public void Formula_ABC_nAnBnC() {
-        final IFormula formula = CommonFormulas.getFormula("ABC-nAnBnC");
+        final IFormula formula = getFormula("ABC-nAnBnC");
         final ExpressionSerializer s = new ExpressionSerializer();
-        s.setSymbols(Symbols.JAVA);
+        s.setSymbols(JavaSymbols.INSTANCE);
         s.setNotation(Notation.INFIX);
         assertEquals(
                 "(A || B || C) && (!A || (!B || !C))",
@@ -53,7 +54,7 @@ public class ExpressionSerializerTest {
         s.setNotation(Notation.POSTFIX);
         assertEquals("(A B C)|| (A! (B! C!)||)||&&", Trees.traverse(formula, s).get());
 
-        s.setSymbols(Symbols.TEXTUAL);
+        s.setSymbols(TextualSymbols.INSTANCE);
         s.setNotation(Notation.INFIX);
         assertEquals(
                 "(A or B or C) and (not A or (not B or not C))",
@@ -70,9 +71,9 @@ public class ExpressionSerializerTest {
 
     @Test
     public void Formula_nAB() {
-        final IFormula formula = CommonFormulas.getFormula("nAB");
+        final IFormula formula = getFormula("nAB");
         final ExpressionSerializer s = new ExpressionSerializer();
-        s.setSymbols(Symbols.JAVA);
+        s.setSymbols(JavaSymbols.INSTANCE);
         s.setNotation(Notation.INFIX);
         assertEquals("!A || B", Trees.traverse(formula, s).get());
         s.setNotation(Notation.PREFIX);
@@ -80,7 +81,7 @@ public class ExpressionSerializerTest {
         s.setNotation(Notation.POSTFIX);
         assertEquals("A! B||", Trees.traverse(formula, s).get());
 
-        s.setSymbols(Symbols.TEXTUAL);
+        s.setSymbols(TextualSymbols.INSTANCE);
         s.setNotation(Notation.INFIX);
         assertEquals("not A or B", Trees.traverse(formula, s).get());
         s.setNotation(Notation.PREFIX);

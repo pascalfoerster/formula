@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 FeatJAR-Development-Team
+ * Copyright (C) 2024 FeatJAR-Development-Team
  *
  * This file is part of FeatJAR-formula.
  *
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with formula. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR> for further information.
+ * See <https://github.com/FeatureIDE/FeatJAR-formula> for further information.
  */
 package de.featjar.formula.analysis.value;
 
@@ -26,8 +26,10 @@ import de.featjar.formula.analysis.IAssignment;
 import de.featjar.formula.analysis.ISolver;
 import de.featjar.formula.io.textual.ValueAssignmentFormat;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -81,8 +83,8 @@ public abstract class AValueAssignment implements IAssignment<String, Object>, I
     }
 
     @Override
-    public LinkedHashMap<String, Object> getAll() {
-        return variableValuePairs;
+    public Map<String, Object> getAll() {
+        return Collections.unmodifiableMap(variableValuePairs);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 FeatJAR-Development-Team
+ * Copyright (C) 2024 FeatJAR-Development-Team
  *
  * This file is part of FeatJAR-formula.
  *
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with formula. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR> for further information.
+ * See <https://github.com/FeatureIDE/FeatJAR-formula> for further information.
  */
 package de.featjar.formula.analysis.bool;
 
@@ -40,20 +40,20 @@ public interface IBooleanRepresentation {
         return toBooleanCNFRepresentation(model).map(Computations::getValue).cast(VariableMap.class);
     }
 
-    public static BooleanRepresentationComputation<IFormula, IBooleanRepresentation> toBooleanCNFRepresentation(
+    public static ComputeBooleanRepresentation<IFormula, IBooleanRepresentation> toBooleanCNFRepresentation(
             IFormula model) {
         return Computations.of(model)
                 .map(ComputeNNFFormula::new)
                 .map(ComputeCNFFormula::new)
-                .map(BooleanRepresentationComputation::new);
+                .map(ComputeBooleanRepresentation::new);
     }
 
-    public static BooleanRepresentationComputation<IFormula, IBooleanRepresentation> toBooleanDNFRepresentation(
+    public static ComputeBooleanRepresentation<IFormula, IBooleanRepresentation> toBooleanDNFRepresentation(
             IFormula model) {
         return Computations.of(model)
                 .map(ComputeNNFFormula::new)
                 .map(ComputeDNFFormula::new)
-                .map(BooleanRepresentationComputation::new);
+                .map(ComputeBooleanRepresentation::new);
     }
 
     /**

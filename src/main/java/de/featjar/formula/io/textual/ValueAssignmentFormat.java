@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 FeatJAR-Development-Team
+ * Copyright (C) 2024 FeatJAR-Development-Team
  *
  * This file is part of FeatJAR-formula.
  *
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with formula. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR> for further information.
+ * See <https://github.com/FeatureIDE/FeatJAR-formula> for further information.
  */
 package de.featjar.formula.io.textual;
 
@@ -56,7 +56,7 @@ public class ValueAssignmentFormat implements IFormat<AValueAssignment> {
                     String variable = e.getKey();
                     Object value = e.getValue();
                     if (value instanceof Boolean) {
-                        return String.format("%s%s", ((boolean) value) ? "" : "-", variable);
+                        return String.format("%s%s", ((boolean) value) ? "+" : "-", variable);
                     } else {
                         return String.format("%s=%s", variable, value);
                     }

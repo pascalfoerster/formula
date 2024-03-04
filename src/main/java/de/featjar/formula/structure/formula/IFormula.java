@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 FeatJAR-Development-Team
+ * Copyright (C) 2024 FeatJAR-Development-Team
  *
  * This file is part of FeatJAR-formula.
  *
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with formula. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR> for further information.
+ * See <https://github.com/FeatureIDE/FeatJAR-formula> for further information.
  */
 package de.featjar.formula.structure.formula;
 
@@ -26,7 +26,7 @@ import de.featjar.base.computation.IComputation;
 import de.featjar.base.data.Result;
 import de.featjar.formula.analysis.VariableMap;
 import de.featjar.formula.analysis.bool.BooleanClauseList;
-import de.featjar.formula.analysis.bool.BooleanRepresentationComputation;
+import de.featjar.formula.analysis.bool.ComputeBooleanClauseList;
 import de.featjar.formula.analysis.value.IValueRepresentation;
 import de.featjar.formula.structure.IExpression;
 import de.featjar.formula.structure.formula.connective.AQuantifier;
@@ -171,7 +171,7 @@ public interface IFormula extends IExpression, IValueRepresentation {
 
     @Override
     default Result<BooleanClauseList> toBoolean(VariableMap variableMap) {
-        return BooleanRepresentationComputation.toBooleanClauseList(this, variableMap);
+        return ComputeBooleanClauseList.toBooleanClauseList(this, variableMap);
     }
 
     @SuppressWarnings("unchecked")

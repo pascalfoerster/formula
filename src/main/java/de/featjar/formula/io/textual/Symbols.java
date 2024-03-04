@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 FeatJAR-Development-Team
+ * Copyright (C) 2024 FeatJAR-Development-Team
  *
  * This file is part of FeatJAR-formula.
  *
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with formula. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR> for further information.
+ * See <https://github.com/FeatureIDE/FeatJAR-formula> for further information.
  */
 package de.featjar.formula.io.textual;
 
@@ -41,12 +41,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Symbols {
-
-    public static final Symbols JAVA = JavaSymbols.INSTANCE;
-    public static final Symbols LOGICAL = LogicalSymbols.INSTANCE;
-    public static final Symbols PROPOSITIONAL = PropositionalModelSymbols.INSTANCE;
-    public static final Symbols SHORT = ShortSymbols.INSTANCE;
-    public static final Symbols TEXTUAL = TextualSymbols.INSTANCE;
 
     private static class OperatorProperties {
         Boolean infix = null;

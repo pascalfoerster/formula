@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 FeatJAR-Development-Team
+ * Copyright (C) 2024 FeatJAR-Development-Team
  *
  * This file is part of FeatJAR-formula.
  *
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with formula. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR> for further information.
+ * See <https://github.com/FeatureIDE/FeatJAR-formula> for further information.
  */
 package de.featjar.formula.structure.formula.connective;
 
@@ -59,12 +59,12 @@ public abstract class ACardinal extends ANonTerminalExpression implements IConne
     }
 
     protected void setRange(Range range) {
-        assertChildrenCountInRange(getChildrenCount(), atLeastTheLargerBound(range));
+        assertChildrenCountInRange(getChildrenCount());
         this.range = range;
     }
 
     private Range atLeastTheLargerBound(Range range) {
-        return Range.atLeast(range.getLargerBound().orElse(null));
+        return Range.atLeast(range.getLargerBound());
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 FeatJAR-Development-Team
+ * Copyright (C) 2024 FeatJAR-Development-Team
  *
  * This file is part of FeatJAR-formula.
  *
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with formula. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR> for further information.
+ * See <https://github.com/FeatureIDE/FeatJAR-formula> for further information.
  */
 package de.featjar.formula.analysis.bool;
 
@@ -52,7 +52,11 @@ public class BooleanSolution extends ABooleanAssignment implements ISolution<Int
                                 .max()
                                 .orElse(0)
                         <= integers.length //
-                : "max index is larger than number of elements" + Arrays.toString(integers);
+                : String.format(
+                        "max index %d is larger than number of elements %d, elements = %s",
+                        Arrays.stream(integers).map(Math::abs).max().orElse(0),
+                        integers.length,
+                        Arrays.toString(integers));
         assert sort
                         || Arrays.stream(integers)
                                         .map(Math::abs) //
