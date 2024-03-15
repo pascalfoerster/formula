@@ -156,7 +156,7 @@ public class XMLFeatureModelExtraFormulaFormat extends AXMLFeatureModelExtraForm
     }
 
     @Override
-    protected void addConstraint(Boolean constraintLabel, IFormula formula) throws ParseException {
+    protected void addConstraint(Boolean constraintLabel, IFormula formula) {
         constraints.add(formula);
     }
 
