@@ -144,6 +144,7 @@ public class XMLFeatureModelExtraFormulaFormat extends AXMLFeatureModelExtraForm
             constraints.add(biImplies);
 
         }
+        biImpliesList.add((BiImplies) biImplies(featureLabel.getKey(),new Or(childFeatureLabels)));
     }
 
     @Override
